@@ -2,7 +2,7 @@
 title: 安装
 description: 使用 create-next-app 创建一个 Next.js 项目。设置 TypeScript，样式，并配置 next.config.js 文件。
 offical: https://nextjs.org/docs/getting-started/installation
-origin: https://github.com/vercel/next.js/blob/1dc5c066cb11a0a5e4227c84182d874f92394717/docs/index.mdx
+origin: https://github.com/vercel/next.js/blob/f6d2aa09de786bddba18faa9efc05d6fcbc23536/docs/01-getting-started/01-installation.mdx
 ---
 
 系统要求：
@@ -34,6 +34,7 @@ What import alias would you like configured? @/*
 在提示之后，`create-next-app`将创建一个指定项目名称的文件夹，并安装所需的依赖项。
 
 > **小贴士**:
+>
 > - Next.js 现在默认有 [TypeScript](/docs/app/building-your-application/configuring/typescript)、[ESLint](/docs/app/building-your-application/configuring/eslint) 和 [Tailwind CSS](/docs/app/building-your-application/styling/tailwind-css)配置。
 > - 你可以选择性地在项目的根目录中使用 [`src`目录](/docs/app/building-your-application/configuring/src-directory)，将应用程序的代码与配置文件分开。
 
@@ -155,9 +156,7 @@ export default function Document() {
 
 > **小贴士**: 虽然可以在同一个项目中使用这两种路由，但是`app`目录中的路由会比`pages`目录中的路由有更高的优先级。我们建议在你的新项目中只使用一种路由，以避免引起混淆。
 
-##
-
-## `public` 文件夹 (可选)
+#### `public` 文件夹 (可选)
 
 创建 `public` 文件夹用来存储静态资源，如图片、字体等， `public` 目录下的文件可以通过 base URL (`/`)来引用。
 
