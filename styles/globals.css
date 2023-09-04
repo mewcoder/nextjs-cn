@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --border-color: #eaeaea;
+}
+:root.dark {
+  --border-color: #333;
+}
+
+.nx-border {
+  border-width: 0px;
+}
+
+.even\:nx-bg-gray-100:nth-child(2n) {
+  --tw-bg-opacity: 0;
+}
+
+th:not(:has(*)) {
+  display: none;
+}
+
+table {
+  display: table !important;
+  width: 100%;
+  font-size: 14px;
+}
+
+:is(html[class~="dark"] .even\:dark\:nx-bg-gray-600\/20):nth-child(2n) {
+  background: none;
+}

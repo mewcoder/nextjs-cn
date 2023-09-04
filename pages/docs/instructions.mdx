@@ -1,0 +1,56 @@
+---
+title: 翻译说明
+---
+
+最近在学习 Next.js，发现社区好像并没有对应的文档翻译，所以自己尝试一下翻译。
+
+Next.js 官网文档的源码是私有的，所以只能自己开发，当前的网站基于 [Nextra](https://github.com/shuding/nextra) 进行开发，能实现官网文档的基本功能。
+
+App Router 和 Pages Router 的内容暂时没有翻译，数量有点多😰
+
+其他的已翻译完毕😀
+
+还未实现的:
+
+- 目录支持 切换 App Router 和 Page Router
+- 搜索支持 切换 App Router 和 Page Router
+- App Router 和 Pages Router 之间复用页面 以及 `<AppOnly>` 和 `<PagesOnly>` 区分内容
+
+> [原文档的仓库地址](https://github.com/vercel/next.js/tree/canary/docs)
+
+```txt filename="docs目录结构"
+.
+│  index.mdx
+│
+├─01-getting-started
+│      01-installation.mdx
+│      02-project-structure.mdx
+│      index.mdx
+│
+├─02-app
+│  │  index.mdx
+│  │
+│  ├─01-building-your-application(54-51) // (文件数量-大于1kb的数量)
+│  │
+│  └─02-api-reference(83-62)
+│
+├─03-pages
+│  │  index.mdx
+│  │
+│  ├─01-building-your-application(69-37)
+│  │
+│  └─02-api-reference(50-10)
+│
+├─04-architecture
+│      accessibility.mdx
+│      fast-refresh.mdx
+│      index.mdx
+│      nextjs-compiler.mdx
+│      supported-browsers.mdx
+│      turbopack.mdx
+│
+└─05-community
+        01-contribution-guide.mdx
+        index.mdx
+
+```

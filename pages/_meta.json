@@ -1,0 +1,14 @@
+{
+  "index": {
+    "type": "page",
+    "title": "Next.js",
+    "display": "hidden",
+    "theme": {
+      "layout": "raw"
+    }
+  },
+  "docs": {
+    "title": "文档",
+    "type": "page"
+  }
+}

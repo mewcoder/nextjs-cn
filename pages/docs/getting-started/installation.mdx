@@ -1,0 +1,187 @@
+---
+title: 安装
+description: 使用 create-next-app 创建一个 Next.js 项目。设置 TypeScript，样式，并配置 next.config.js 文件。
+---
+
+系统要求：
+
+- Node.js 16.14 或更高版本。
+- 支持 macOS，Windows（包括 WSL）和 Linux。
+
+## 自动安装
+
+我们建议使用`create-next-app`创建一个新的 Next.js 应用，它会为你自动设置好所有东西。要创建一个项目，请运行：
+
+```bash filename="Terminal"
+npx create-next-app@latest
+```
+
+在安装时，将看到以下提示：
+
+```txt filename="Terminal"
+What is your project named? my-app
+Would you like to use TypeScript? No / Yes
+Would you like to use ESLint? No / Yes
+Would you like to use Tailwind CSS? No / Yes
+Would you like to use `src/` directory? No / Yes
+Would you like to use App Router? (recommended) No / Yes
+Would you like to customize the default import alias? No / Yes
+What import alias would you like configured? @/*
+```
+
+在提示之后，`create-next-app`将创建一个指定项目名称的文件夹，并安装所需的依赖项。
+
+> **值得知道**:
+>
+> - Next.js 现在默认有 [TypeScript](/docs/app/building-your-application/configuring/typescript)、[ESLint](/docs/app/building-your-application/configuring/eslint) 和 [Tailwind CSS](/docs/app/building-your-application/styling/tailwind-css)配置。
+> - 你可以选择性地在项目的根目录中使用 [`src`目录](/docs/app/building-your-application/configuring/src-directory)，将应用程序的代码与配置文件分开。
+
+## 手动安装
+
+要手动创建新的 Next.js 应用，请安装所需的包：
+
+```bash filename="Terminal"
+npm install next@latest react@latest react-dom@latest
+```
+
+打开 `package.json`文件并添加以下 `scripts`:
+
+```json filename="package.json"
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+}
+```
+
+这些脚本涉及开发应用的不同阶段：
+
+- `dev`: 运行[`next dev`](/docs/app/api-reference/next-cli#development)以在开发模式下启动 Next.js。
+- `build`: 运行[`next build`](/docs/app/api-reference/next-cli#build)以构建用于生产使用的应用。
+- `start`: 运行[`next start`](/docs/app/api-reference/next-cli#production)以启动 Next.js 生产服务器。
+- `lint`: 运行[`next lint`](/docs/app/api-reference/next-cli#lint)以设置 Next.js 的内置 ESLint 配置。
+
+### 创建目录
+
+Next.js 使用文件系统路由，这意味着应用程序中的路由根据构建文件的方式决定。
+
+#### `app` 目录
+
+对于新的应用程序，我们建议使用 [App 路由](/docs/app)。 该路由方式允许你使用 Rreact 的最新特性而且是 [Pages 路由](/docs/pages) 基于社区反馈的演进.
+
+创建 `app/` 文件夹, 然后添加 `layout.tsx` 和 `page.tsx` 文件。 当用户访问应用程序的根路径 (`/`)将会呈现已下内容。
+
+<Image
+  alt="App 文件夹结构"
+  srcLight="/docs/light/app-getting-started.png"
+  srcDark="/docs/dark/app-getting-started.png"
+  width="1600"
+  height="363"
+/>
+
+Create a [root layout](/docs/app/building-your-application/routing/pages-and-layouts#root-layout-required) inside `app/layout.tsx` with the required `<html>` and `<body>` tags:
+
+```tsx filename="app/layout.tsx" switcher
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+```jsx filename="app/layout.js" switcher
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+Finally, create a home page `app/page.tsx` with some initial content:
+
+```tsx filename="app/page.tsx" switcher
+export default function Page() {
+  return <h1>Hello, Next.js!</h1>;
+}
+```
+
+```jsx filename="app/page.js" switcher
+export default function Page() {
+  return <h1>Hello, Next.js!</h1>;
+}
+```
+
+> **Good to know**: If you forget to create `layout.tsx`, Next.js will automatically create this file when running the development server with `next dev`.
+
+Learn more about [using the App Router](/docs/app/building-your-application/routing/defining-routes).
+
+#### The `pages` directory (optional)
+
+If you prefer to use the Pages Router instead of the App Router, you can create a `pages/` directory at the root of your project.
+
+Then, add an `index.tsx` file inside your `pages` folder. This will be your home page (`/`):
+
+```tsx filename="pages/index.tsx" switcher
+export default function Page() {
+  return <h1>Hello, Next.js!</h1>;
+}
+```
+
+Next, add an `_app.tsx` file inside `pages/` to define the global layout. Learn more about the [custom App file](/docs/pages/building-your-application/routing/custom-app)).
+
+```tsx filename="pages/_app.tsx" switcher
+import type { AppProps } from "next/app";
+
+export default function App({ Component, pageProps }: AppProps) {
+  return <Component {...pageProps} />;
+}
+```
+
+```jsx filename="pages/_app.js" switcher
+export default function App({ Component, pageProps }) {
+  return <Component {...pageProps} />;
+}
+```
+
+Finally, add a `_document.tsx` file inside `pages/` to control the initial response from the server. Learn more about the [custom Document file](/docs/pages/building-your-application/routing/custom-document).
+
+```tsx filename="pages/_document.tsx" switcher
+import { Html, Head, Main, NextScript } from "next/document";
+
+export default function Document() {
+  return (
+    <Html>
+      <Head />
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  );
+}
+```
+
+Learn more about [using the Pages Router](/docs/pages/building-your-application/routing/pages-and-layouts).
+
+> **Good to know**: Although you can use both routers in the same project, routes in `app` will be prioritized over `pages`. We recommend using only one router in your new project to avoid confusion.
+
+#### The `public` folder (optional)
+
+Create a `public` folder to store static assets such as images, fonts, etc. Files inside `public` directory can then be referenced by your code starting from the base URL (`/`).
+
+## Run the Development Server
+
+1. Run `npm run dev` to start the development server.
+2. Visit `http://localhost:3000` to view your application.
+3. Edit `app/layout.tsx` (or `pages/index.tsx`) file and save it to see the updated result in your browser.
