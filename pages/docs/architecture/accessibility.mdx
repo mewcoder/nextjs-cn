@@ -1,0 +1,34 @@
+---
+title: 无障碍
+description: Next.js内置的无障碍功能。
+---
+
+Next.js 团队致力于让 Next.js 对所有开发者(以及终端用户)都可无障碍。通过在 Next.js 中默认添加无障碍功能,我们旨在让网络对每个人都更具包容性。
+
+## 路由播报
+
+在服务器渲染的页面之间切换时(例如使用`<a href>`标签)，屏幕阅读器和其他辅助技术会在页面加载时播报页面标题，以便用户了解页面已经改变。
+
+除了传统的页面导航之外，Next.js 还支持客户端过渡以提高性能(使用`next/link`)。为了确保客户端过渡也被播报给辅助技术，Next.js 默认包含一个路由播报器。
+
+Next.js 路由播报器会先检查 `document.title`，然后是`<h1>`元素，最后是 URL 路径名，以查找要播报的页面名称。为了获得最可无障碍的用户体验，请确保应用程序中的每个页面都有一个独特且描述明确的标题。
+
+## 代码规范
+
+Next.js 提供了开箱即用的[集成 ESLint 体验](/docs/pages/building-your-application/configuring/eslint)，包括 Next.js 的自定义规则。默认情况下，Next.js 包含`eslint-plugin-jsx-a11y`以帮助尽早发现无障碍问题，包括对以下方面发出警告:
+
+- [aria-props](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/aria-props.md?rgh-link-date=2021-06-04T02%3A10%3A36Z)
+- [aria-proptypes](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/aria-proptypes.md?rgh-link-date=2021-06-04T02%3A10%3A36Z)
+- [aria-unsupported-elements](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/aria-unsupported-elements.md?rgh-link-date=2021-06-04T02%3A10%3A36Z)
+- [role-has-required-aria-props](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/role-has-required-aria-props.md?rgh-link-date=2021-06-04T02%3A10%3A36Z)
+- [role-supports-aria-props](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/role-supports-aria-props.md?rgh-link-date=2021-06-04T02%3A10%3A36Z)
+
+例如，这个插件可以帮助确保为`img`标签添加 alt 文本,使用正确的`aria-*`属性，使用正确的`role`属性等。
+
+## 无障碍资源
+
+- [WebAIM WCAG 检查表](https://webaim.org/standards/wcag/checklist)
+- [WCAG 2.1 指南](https://www.w3.org/TR/WCAG21/)
+- [A11y 项目](https://www.a11yproject.com/)
+- 检查前景色和背景色之间的 [色彩对比度](https://developer.mozilla.org/en-US/docs/Web/Accessibility/Understanding_WCAG/Perceivable/Color_contrast) between foreground and background elements
+- 在使用动画时采用 [`prefers-reduced-motion`](https://web.dev/prefers-reduced-motion/)

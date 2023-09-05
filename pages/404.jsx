@@ -1,13 +1,16 @@
 export default function Custom404() {
-  const path = typeof window !== "undefined" ? window.location.pathname : "";
+  function handleCick() {
+    const path = typeof window !== "undefined" ? window.location.pathname : "docs";
+    window.open(`https://nextjs.org/${path}`);
+  }
 
   return (
-    <div class="h-screen flex flex-col items-center justify-center">
+    <div className="h-screen flex flex-col items-center justify-center">
       <div>
         页面不存在! 请前往
-        <a href={`https://nextjs.org/${path}`} className="underline mx-1">
+        <span className="underline mx-1 cursor-pointer" onClick={handleCick}>
           next.org
-        </a>
+        </span>
         查看
       </div>
     </div>

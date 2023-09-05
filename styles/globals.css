@@ -30,3 +30,7 @@ table {
 :is(html[class~="dark"] .even\:dark\:nx-bg-gray-600\/20):nth-child(2n) {
   background: none;
 }
+
+li > ul {
+  margin-top: 0px !important;
+}

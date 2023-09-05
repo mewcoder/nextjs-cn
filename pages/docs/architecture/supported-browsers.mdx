@@ -1,0 +1,70 @@
+---
+title: 支持的浏览器
+description: Next.js 支持哪些浏览器以及 JavaScript 特性
+---
+
+Next.js **无需任何配置**即可支持**现代浏览器**。
+
+- Chrome 64+ - Chrome 浏览器 64+
+- Edge 79+ - 边缘 79+
+- Firefox 67+
+- Opera 51+
+- Safari 12+
+
+## Browserslist
+
+如果你想要针对特定的浏览器或特性，Next.js 支持在 package.json 文件中使用 [Browserslist](https://browsersl.ist) 配置。Next.js 默认使用以下 Browserslist 配置:
+
+```json filename="package.json"
+{
+  "browserslist": [
+    "chrome 64"，
+    "edge 79"，
+    "firefox 67"，
+    "opera 51"，
+    "safari 12"
+  ]
+}
+```
+
+## Polyfills
+
+我们注入了 [常用的 polyfills](https://github.com/vercel/next.js/blob/canary/packages/next-polyfill-nomodule/src/index.js)，包括:
+
+- [**fetch()**](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) — 代替: `whatwg-fetch` 和 `unfetch`.
+- [**URL**](https://developer.mozilla.org/en-US/docs/Web/API/URL) — 代替: the [`url` package (Node.js API)](https://nodejs.org/api/url.html).
+- [**Object.assign()**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign) — 替代 : `object-assign`， `object.assign` 和 `core-js/object/assign`。
+
+如果你的任何依赖项包含这些 polyfill，它们会在生产版本中自动排除，以避免重复。
+
+此外，为了减小包的大小，Next.js 只会为需要它们的浏览器加载这些 polyfill。全球大部分的网络流量都不会下载这些 polyfill。
+
+### 自定义 Polyfill
+
+如果你自己的代码或任何外部 npm 依赖项需要目标浏览器不支持的功能(如 IE 11)，你就需要自己添加 polyfill。
+
+在这种情况下，你应该在[自定义`<App>`](/docs/pages/building-your-application/routing/custom-app) 组件或单独的组件中，添加特定 polyfill 的顶层导入语句。
+
+## JavaScript 语言特性
+
+Next.js 允许你开箱即用最新的 JavaScript 特性。除了 [ES6 特性](https://github.com/lukehoban/es6features) 之外，Next.js 还支持:
+
+- [Async/await](https://github.com/tc39/ecmascript-asyncawait) (ES2017)
+- [Object Rest/Spread Properties](https://github.com/tc39/proposal-object-rest-spread) (ES2018)
+- [Dynamic `import()`](https://github.com/tc39/proposal-dynamic-import) (ES2020)
+- [Optional Chaining](https://github.com/tc39/proposal-optional-chaining) (ES2020)
+- [Nullish Coalescing](https://github.com/tc39/proposal-nullish-coalescing) (ES2020)
+- [Class Fields](https://github.com/tc39/proposal-class-fields) 和 [Static Properties](https://github.com/tc39/proposal-static-class-features) (part of stage 3 proposal)
+- 等
+
+### 服务器端 Polyfills
+
+除了在客户端的 `fetch()` 之外，Next.js 还在 Node.js 环境中(尚未可用) polyfill 了 `fetch()`。它使用 `undici`，与 Node.js 本身使用的实现相同。你可以在服务器代码中(如 `getStaticProps`/`getServerSideProps`)使用 `fetch()`，而无需使用像 `isomorphic-unfetch` 和 `node-fetch` 这样的 polyfill。
+
+### TypeScript 特性
+
+Next.js 内置了 TypeScript 支持。 [了解更多](/docs/pages/building-your-application/configuring/typescript)。
+
+### 自定义 Babel 配置(高级)
+
+你可以自定义 babel 配置。 [了解更多](/docs/pages/building-your-application/configuring/babel)。

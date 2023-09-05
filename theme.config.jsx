@@ -1,6 +1,8 @@
 const dayjs = require("dayjs");
 import { useConfig } from "nextra-theme-docs";
 import Image from "./components/image";
+import Check from "./components/check";
+import Cross from "./components/cross";
 import { Callout } from "nextra/components";
 
 // 翻译进度 /文档总数
@@ -137,5 +139,7 @@ export default {
   components: {
     Image,
     Callout,
+    Check,
+    Cross,
   },
 };

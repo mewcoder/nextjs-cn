@@ -1,0 +1,29 @@
+---
+title: Turbopack
+description: Turbopack 是一个针对 JavaScript 和 TypeScript 优化的增量打包器,使用 Rust 编写,并内置于 Next.js 中。
+---
+
+[Turbopack](https://turbo.build/pack) (beta)是一个针对 JavaScript 和 TypeScript 优化的增量打包器,使用 Rust 编写,并内置于 Next.js 中。
+
+## 使用
+
+Turbopack 可以在 Next.js 的 `pages` 和 `app` 目录中用于更快的本地开发。要启用 Turbopack,在运行 Next.js 开发服务器时使用 `--turbo` 标志。
+
+```json filename="package.json" {3}
+{
+  "scripts": {
+    "dev": "next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+}
+```
+
+## 支持的功能
+
+要了解 Turbopack 当前支持的功能,请查看[文档](https://turbo.build/pack/docs/features)。
+
+## 不支持的功能
+
+Turbopack 目前仅支持 `next dev`，不支持 `next build`。我们正在努力在逐步走向稳定版本的过程中支持构建。

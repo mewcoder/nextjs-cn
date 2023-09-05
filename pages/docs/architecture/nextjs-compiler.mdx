@@ -1,0 +1,463 @@
+---
+title: Next.js 编译器
+description: 用 Rust 编写的 Next.js 编译器可转译和压缩 Next.js 应用程序。
+---
+
+Next.js 编译器是使用 [SWC](http://swc.rs/) 用 Rust 编写的，它允许 Next.js 转译和压缩 JavaScript 代码以用于生产。它取代了用于单个文件的 Babel 和用于代码压缩的 Terser。
+
+使用 Next.js 编译器进行编译的速度是 Babel 的 17 倍，并且从 Next.js 第 12 版开始默认启用。如果你已有 Babel 配置或正在使用[不支持的特性](#不支持的特性)，你的应用程序将选择不使用 Next.js 编译器，而继续使用 Babel。
+
+## 为什么选择 SWC?
+
+[SWC](http://swc.rs/) 是下一代快速开发者工具的可扩展基于 Rust 的平台。
+
+SWC 可以用于编译、最小化、打包等,并且设计了可扩展性。它可以被调用来执行代码转换(无论是内置的还是自定义的)。这些转换的执行是通过 Next.js 等更高级别的工具来完成的。
+
+我们选择基于 SWC 构建的几个原因:
+
+- **可扩展性:** SWC 可以作为 Crate 在 Next.js 内部使用,而不需要 fork 该库或解决设计约束。
+- **性能:** 通过切换到 SWC,我们能在 Next.js 中实现约 3 倍的快速刷新速度和 5 倍的构建速度,优化空间还在持续扩大。
+- **WebAssembly:** Rust 对 WASM 的支持对支持所有可能的平台和将 Next.js 开发带到任何地方至关重要。
+- **社区:** Rust 社区和生态系统令人惊叹且还在不断增长。
+
+## 支持的特性
+
+### Styled Components
+
+We're working to port `babel-plugin-styled-components` to the Next.js Compiler.
+
+First, update to the latest version of Next.js: `npm install next@latest`. Then, update your `next.config.js` file:
+
+```js filename="next.config.js"
+module.exports = {
+  compiler: {
+    // see https://styled-components.com/docs/tooling#babel-plugin for more info on the options.
+    styledComponents: boolean | {
+      // Enabled by default in development, disabled in production to reduce file size,
+      // setting this will override the default for all environments.
+      displayName?: boolean,
+      // Enabled by default.
+      ssr?: boolean,
+      // Enabled by default.
+      fileName?: boolean,
+      // Empty by default.
+      topLevelImportPaths?: string[],
+      // Defaults to ["index"].
+      meaninglessFileNames?: string[],
+      // Enabled by default.
+      cssProp?: boolean,
+      // Empty by default.
+      namespace?: string,
+      // Not supported yet.
+      minify?: boolean,
+      // Not supported yet.
+      transpileTemplateLiterals?: boolean,
+      // Not supported yet.
+      pure?: boolean,
+    },
+  },
+}
+```
+
+`minify`, `transpileTemplateLiterals` and `pure` are not yet implemented. You can follow the progress [here](https://github.com/vercel/next.js/issues/30802). `ssr` and `displayName` transforms are the main requirement for using `styled-components` in Next.js.
+
+### Jest
+
+The Next.js Compiler transpiles your tests and simplifies configuring Jest together with Next.js including:
+
+- Auto mocking of `.css`, `.module.css` (and their `.scss` variants), and image imports
+- Automatically sets up `transform` using SWC
+- Loading `.env` (and all variants) into `process.env`
+- Ignores `node_modules` from test resolving and transforms
+- Ignoring `.next` from test resolving
+- Loads `next.config.js` for flags that enable experimental SWC transforms
+
+First, update to the latest version of Next.js: `npm install next@latest`. Then, update your `jest.config.js` file:
+
+```js filename="jest.config.js"
+const nextJest = require("next/jest");
+
+// Providing the path to your Next.js app which will enable loading next.config.js and .env files
+const createJestConfig = nextJest({ dir: "./" });
+
+// Any custom config you want to pass to Jest
+const customJestConfig = {
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+};
+
+// createJestConfig is exported in this way to ensure that next/jest can load the Next.js configuration, which is async
+module.exports = createJestConfig(customJestConfig);
+```
+
+### Relay
+
+To enable [Relay](https://relay.dev/) support:
+
+```js filename="next.config.js"
+module.exports = {
+  compiler: {
+    relay: {
+      // This should match relay.config.js
+      src: "./",
+      artifactDirectory: "./__generated__",
+      language: "typescript",
+      eagerEsModules: false,
+    },
+  },
+};
+```
+
+> **Good to know**: In Next.js, all JavaScript files in `pages` directory are considered routes. So, for `relay-compiler` you'll need to specify `artifactDirectory` configuration settings outside of the `pages`, otherwise `relay-compiler` will generate files next to the source file in the `__generated__` directory, and this file will be considered a route, which will break production builds.
+
+### Remove React Properties
+
+Allows to remove JSX properties. This is often used for testing. Similar to `babel-plugin-react-remove-properties`.
+
+To remove properties matching the default regex `^data-test`:
+
+```js filename="next.config.js"
+module.exports = {
+  compiler: {
+    reactRemoveProperties: true,
+  },
+};
+```
+
+To remove custom properties:
+
+```js filename="next.config.js"
+module.exports = {
+  compiler: {
+    // The regexes defined here are processed in Rust so the syntax is different from
+    // JavaScript `RegExp`s. See https://docs.rs/regex.
+    reactRemoveProperties: { properties: ["^data-custom$"] },
+  },
+};
+```
+
+### Remove Console
+
+This transform allows for removing all `console.*` calls in application code (not `node_modules`). Similar to `babel-plugin-transform-remove-console`.
+
+Remove all `console.*` calls:
+
+```js filename="next.config.js"
+module.exports = {
+  compiler: {
+    removeConsole: true,
+  },
+};
+```
+
+Remove `console.*` output except `console.error`:
+
+```js filename="next.config.js"
+module.exports = {
+  compiler: {
+    removeConsole: {
+      exclude: ["error"],
+    },
+  },
+};
+```
+
+### Legacy Decorators
+
+Next.js will automatically detect `experimentalDecorators` in `jsconfig.json` or `tsconfig.json`. Legacy decorators are commonly used with older versions of libraries like `mobx`.
+
+This flag is only supported for compatibility with existing applications. We do not recommend using legacy decorators in new applications.
+
+First, update to the latest version of Next.js: `npm install next@latest`. Then, update your `jsconfig.json` or `tsconfig.json` file:
+
+```js
+{
+  "compilerOptions": {
+    "experimentalDecorators": true
+  }
+}
+```
+
+### importSource
+
+Next.js will automatically detect `jsxImportSource` in `jsconfig.json` or `tsconfig.json` and apply that. This is commonly used with libraries like [Theme UI](https://theme-ui.com).
+
+First, update to the latest version of Next.js: `npm install next@latest`. Then, update your `jsconfig.json` or `tsconfig.json` file:
+
+```js
+{
+  "compilerOptions": {
+    "jsxImportSource": "theme-ui"
+  }
+}
+```
+
+### Emotion
+
+We're working to port `@emotion/babel-plugin` to the Next.js Compiler.
+
+First, update to the latest version of Next.js: `npm install next@latest`. Then, update your `next.config.js` file:
+
+```js filename="next.config.js"
+
+module.exports = {
+  compiler: {
+    emotion: boolean | {
+      // default is true. It will be disabled when build type is production.
+      sourceMap?: boolean,
+      // default is 'dev-only'.
+      autoLabel?: 'never' | 'dev-only' | 'always',
+      // default is '[local]'.
+      // Allowed values: `[local]` `[filename]` and `[dirname]`
+      // This option only works when autoLabel is set to 'dev-only' or 'always'.
+      // It allows you to define the format of the resulting label.
+      // The format is defined via string where variable parts are enclosed in square brackets [].
+      // For example labelFormat: "my-classname--[local]", where [local] will be replaced with the name of the variable the result is assigned to.
+      labelFormat?: string,
+      // default is undefined.
+      // This option allows you to tell the compiler what imports it should
+      // look at to determine what it should transform so if you re-export
+      // Emotion's exports, you can still use transforms.
+      importMap?: {
+        [packageName: string]: {
+          [exportName: string]: {
+            canonicalImport?: [string, string],
+            styledBaseImport?: [string, string],
+          }
+        }
+      },
+    },
+  },
+}
+```
+
+### Minification
+
+Next.js' swc compiler is used for minification by default since v13. This is 7x faster than Terser.
+
+If Terser is still needed for any reason this can be configured.
+
+```js filename="next.config.js"
+module.exports = {
+  swcMinify: false,
+};
+```
+
+### Module Transpilation
+
+Next.js can automatically transpile and bundle dependencies from local packages (like monorepos) or from external dependencies (`node_modules`). This replaces the `next-transpile-modules` package.
+
+```js filename="next.config.js"
+module.exports = {
+  transpilePackages: ["@acme/ui", "lodash-es"],
+};
+```
+
+### Modularize Imports
+
+<details open>
+  <summary>Examples</summary>
+
+- [modularize-imports](https://github.com/vercel/next.js/blob/canary/examples/modularize-imports/)
+
+</details>
+
+Allows to modularize imports, similar to [babel-plugin-transform-imports](https://www.npmjs.com/package/babel-plugin-transform-imports).
+
+Transforms member style imports of packages that use a “barrel file” (a single file that re-exports other modules):
+
+```js
+import { Row, Grid as MyGrid } from "react-bootstrap";
+import { merge } from "lodash";
+```
+
+...into default style imports of each module. This prevents compilation of unused modules:
+
+```js
+import Row from "react-bootstrap/Row";
+import MyGrid from "react-bootstrap/Grid";
+import merge from "lodash/merge";
+```
+
+Config for the above transform:
+
+```js filename="next.config.js"
+module.exports = {
+  modularizeImports: {
+    "react-bootstrap": {
+      transform: "react-bootstrap/{{member}}",
+    },
+    lodash: {
+      transform: "lodash/{{member}}",
+    },
+  },
+};
+```
+
+#### Handlebars variables and helper functions
+
+This transform uses [handlebars](https://docs.rs/handlebars) to template the replacement import path in the `transform` field. These variables and helper functions are available:
+
+1. `member`: Has type `string`. The name of the member import.
+2. `lowerCase`, `upperCase`, `camelCase`, `kebabCase`: Helper functions to convert a string to lower, upper, camel or kebab cases.
+3. `matches`: Has type `string[]`. All groups matched by the regular expression. `matches.[0]` is the full match.
+
+For example, you can use the `kebabCase` helper like this:
+
+```js filename="next.config.js"
+module.exports = {
+  modularizeImports: {
+    "my-library": {
+      transform: "my-library/{{ kebabCase member }}",
+    },
+  },
+};
+```
+
+The above config will transform your code as follows:
+
+```js
+// Before
+import { MyModule } from "my-library";
+
+// After (`MyModule` was converted to `my-module`)
+import MyModule from "my-library/my-module";
+```
+
+You can also use regular expressions using Rust [regex](https://docs.rs/regex/latest/regex/) crate’s syntax:
+
+```js filename="next.config.js"
+module.exports = {
+  modularizeImports: {
+    "my-library/?(((\\w*)?/?)*)": {
+      transform: "my-library/{{ matches.[1] }}/{{member}}",
+    },
+  },
+};
+```
+
+The above config will transform your code as follows:
+
+```js
+// Before
+import { MyModule } from "my-library";
+import { App } from "my-library/components";
+import { Header, Footer } from "my-library/components/app";
+
+// After
+import MyModule from "my-library/my-module";
+import App from "my-library/components/app";
+import Header from "my-library/components/app/header";
+import Footer from "my-library/components/app/footer";
+```
+
+#### Using named imports
+
+By default, `modularizeImports` assumes that each module uses default exports. However, this may not always be the case — named exports may be used.
+
+```ts filename="my-library/MyModule.ts"
+// Using named export instead of default export
+export const MyModule = {};
+
+// my-library/index.ts
+// The “barrel file” that re-exports `MyModule`
+export { MyModule } from "./MyModule";
+```
+
+In this case, you can use the `skipDefaultConversion` option to use named imports instead of default imports:
+
+```js filename="next.config.js"
+module.exports = {
+  modularizeImports: {
+    "my-library": {
+      transform: "my-library/{{member}}",
+      skipDefaultConversion: true,
+    },
+  },
+};
+```
+
+The above config will transform your code as follows:
+
+```js
+// Before
+import { MyModule } from "my-library";
+
+// After (imports `MyModule` using named import)
+import { MyModule } from "my-library/MyModule";
+```
+
+#### Preventing full import
+
+If you use the `preventFullImport` option, the compiler will throw an error if you import a “barrel file” using default import. If you use the following config:
+
+```js filename="next.config.js"
+module.exports = {
+  modularizeImports: {
+    lodash: {
+      transform: "lodash/{{member}}",
+      preventFullImport: true,
+    },
+  },
+};
+```
+
+The compiler will throw an error if you try to import the full `lodash` library (instead of using named imports):
+
+```js
+// Compiler error
+import lodash from "lodash";
+```
+
+## 实验性特性
+
+### SWC Trace profiling
+
+You can generate SWC's internal transform traces as chromium's [trace event format](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview?mode=html#%21=).
+
+```js filename="next.config.js"
+module.exports = {
+  experimental: {
+    swcTraceProfiling: true,
+  },
+};
+```
+
+Once enabled, swc will generate trace named as `swc-trace-profile-${timestamp}.json` under `.next/`. Chromium's trace viewer (chrome://tracing/, https://ui.perfetto.dev/), or compatible flamegraph viewer (https://www.speedscope.app/) can load & visualize generated traces.
+
+### SWC 插件 (实验性)
+
+你可以配置 swc 的转换，以使用 wasm 编写的 SWC 实验插件支持来定制转换行为。
+
+```js filename="next.config.js"
+module.exports = {
+  experimental: {
+    swcPlugins: [
+      [
+        "plugin",
+        {
+          ...pluginOptions,
+        },
+      ],
+    ],
+  },
+};
+```
+
+`swcPlugins` 接受用于配置插件的元组数组。插件的元组包含插件的路径和用于插件配置的对象。插件的路径可以是 npm 模块包名，也可以是 `.wasm` 二进制文件本身的绝对路径。
+
+## 不支持的特性
+
+当你的应用程序有一个 .babelrc 文件时，Next.js 会自动回退到使用 Babel 来转换单个文件。这确保了向后兼容性，以支持利用自定义 Babel 插件的现有应用程序。
+
+如果你正在使用自定义的 Babel 设置，请[分享你的配置](https://github.com/vercel/next.js/discussions/30174)。我们正在努力移植尽可能多常用的 Babel 转换，以及在未来支持插件。
+
+## 版本历史
+
+| 版本      | 变化                                                                                                                                                                                                     |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v13.1.0` | [Module Transpilation](https://nextjs.org/blog/next-13-1#built-in-module-transpilation-stable) and [Modularize Imports](https://nextjs.org/blog/next-13-1#import-resolution-for-smaller-bundles) stable. |
+| `v13.0.0` | SWC Minifier enabled by default.                                                                                                                                                                         |
+| `v12.3.0` | SWC Minifier [stable](https://nextjs.org/blog/next-12-3#swc-minifier-stable).                                                                                                                            |
+| `v12.2.0` | [SWC Plugins](#swc-plugins-experimental) experimental support added.                                                                                                                                     |
+| `v12.1.0` | Added support for Styled Components, Jest, Relay, Remove React Properties, Legacy Decorators, Remove Console, and jsxImportSource.                                                                       |
+| `v12.0.0` | Next.js Compiler [introduced](https://nextjs.org/blog/next-12).                                                                                                                                          |

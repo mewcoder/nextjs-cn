@@ -1,0 +1,8 @@
+{
+  "index": "概览",
+  "accessibility": "无障碍",
+  "fast-refresh": "快速刷新",
+  "nextjs-compiler": "Next.js 编译器",
+  "supported-browsers": "支持的浏览器",
+  "turbopack": "Turbopack"
+}
